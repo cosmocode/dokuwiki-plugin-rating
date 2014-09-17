@@ -19,8 +19,10 @@ class action_plugin_rating extends DokuWiki_Action_Plugin {
      */
     public function register(Doku_Event_Handler $controller) {
 
-       $controller->register_hook('AJAX_CALL_UNKNOWN', 'FIXME', $this, 'handle_ajax_call_unknown');
-   
+       $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call_unknown');
+
+        $controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, 'handle_vote');
+
     }
 
     /**
@@ -31,8 +33,40 @@ class action_plugin_rating extends DokuWiki_Action_Plugin {
      *                           handler was registered]
      * @return void
      */
-
     public function handle_ajax_call_unknown(Doku_Event &$event, $param) {
+        if($event->data != 'rating') return;
+        $event->preventDefault();
+        $event->stopPropagation();
+
+        global $ID;
+        $ID = getID();
+
+        // let the other handler do it
+        $this->handle_vote($event, $param);
+
+        /** @var helper_plugin_rating $hlp */
+        $hlp = plugin_load('helper', 'rating');
+        $hlp->tpl(true);
+    }
+
+    /**
+     * [Custom event handler which performs action]
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param mixed      $param  [the parameters passed as fifth argument to register_hook() when this
+     *                           handler was registered]
+     * @return void
+     */
+    public function handle_vote(Doku_Event &$event, $param) {
+        global $INPUT;
+        global $ID;
+        if(!$INPUT->has('rating')) return;
+
+        $rate = $INPUT->int('rating');
+
+        /** @var helper_plugin_rating $hlp */
+        $hlp = plugin_load('helper', 'rating');
+        $hlp->rate($rate, $ID);
     }
 
 }

@@ -11,28 +11,74 @@ if(!defined('DOKU_INC')) die();
 
 class helper_plugin_rating extends DokuWiki_Plugin {
 
-    /**
-     * Return info about supported methods in this Helper Plugin
-     *
-     * @return array of public methods
-     */
-    public function getMethods() {
-        return array(
-            array(
-                'name'   => 'getThreads',
-                'desc'   => 'returns pages with discussion sections, sorted by recent comments',
-                'params' => array(
-                    'namespace'         => 'string',
-                    'number (optional)' => 'integer'
-                ),
-                'return' => array('pages' => 'array')
-            ),
-            array(
-                // and more supported methods...
-            )
-        );
+    /** @var helper_plugin_sqlite */
+    protected $sqlite = null;
+
+    public function getDBHelper() {
+        if(!is_null($this->sqlite)) return $this->sqlite;
+
+        $this->sqlite = plugin_load('helper', 'sqlite');
+        if(!$this->sqlite) {
+            msg('The rating plugin requires the sqlite plugin', -1);
+            $this->sqlite = null;
+            return null;
+        }
+
+
+        $ok = $this->sqlite->init('rating', __DIR__.'/db');
+        if(!$ok) {
+            msg('rating plugin sqlite initialization failed', -1);
+            $this->sqlite = null;
+            return null;
+        }
+
+        return $this->sqlite;
     }
 
+    public function userID() {
+        if(isset($_SERVER['REMOTE_USER'])) return $_SERVER['REMOTE_USER'];
+        return clientIP(true);
+    }
+
+    public function tpl($inner=false) {
+        global $ID;
+
+        $sqlite = $this->getDBHelper();
+        if(!$sqlite) return;
+
+
+        $sql = "SELECT sum(value) FROM ratings WHERE page = ?";
+        $res = $sqlite->query($sql, $ID);
+        $current = (int) $sqlite->res2single($res);
+        $sqlite->res_close($res);
+
+        $sql = "SELECT value FROM ratings WHERE page = ? AND rater = ?";
+        $res = $sqlite->query($sql, $ID, $this->userID());
+        $self = (int) $sqlite->res2single($res);
+        $sqlite->res_close($res);
+
+        if(!$inner) echo '<div class="plugin_rating">';
+
+        $class = ($self == -1) ? 'act' : '';
+        echo '<a href="'.wl($ID,array('rating'=>-1)).'" class="plugin_rating_down '.$class.'" data-rating="-1">-1</a>';
+        echo '<span>'.$current.'</span>';
+
+        $class = ($self == 1) ? 'act' : '';
+        echo '<a href="'.wl($ID,array('rating'=>+1)).'" class="plugin_rating_up '.$class.'" data-rating="1">+1</a>';
+
+        if(!$inner) echo '</div>';
+    }
+
+    public function rate($rate, $page) {
+        if($rate < -1 ) $rate = -1;
+        if($rate > 1 ) $rate = 1;
+
+        $sqlite = $this->getDBHelper();
+        if(!$sqlite) return;
+
+        $sql = "INSERT OR REPLACE INTO ratings (page, rater, value) VALUES (?, ?, ?)";
+        $sqlite->query($sql, $page, $this->userID(), $rate);
+    }
 }
 
 // vim:ts=4:sw=4:et:
