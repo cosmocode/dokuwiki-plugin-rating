@@ -1,0 +1,36 @@
+div.plugin_rating {
+    line-height: 20px;
+    height: 20px;
+    font-size: 20px;
+
+    a {
+        width: 20px;
+        height: 20px;
+
+        // hide text
+        display: inline-block;
+        text-indent: -1000px;
+    }
+
+    a.plugin_rating_down {
+        background: transparent url(pix/thumbs-o-down_333333_20.png) bottom center no-repeat;
+        margin-right: 5px;
+    }
+
+    a.plugin_rating_down.act {
+        background: transparent url(pix/thumbs-down_333333_20.png) bottom center no-repeat;
+    }
+
+    a.plugin_rating_up {
+        background: transparent url(pix/thumbs-o-up_333333_20.png) bottom center no-repeat;
+    }
+
+    a.plugin_rating_up.act {
+        background: transparent url(pix/thumbs-up_333333_20.png) bottom center no-repeat;
+    }
+
+    span {
+        display: inline-block;
+        margin-right: 5px;
+    }
+}
