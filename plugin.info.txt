@@ -1,0 +1,7 @@
+base   rating
+author Andreas Gohr
+email  gohr@cosmocode.de
+date   2014-09-17
+name   rating plugin
+desc   Allows rating a page
+url    http://www.cosmocode.de
