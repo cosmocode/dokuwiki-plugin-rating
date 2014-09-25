@@ -58,10 +58,11 @@ class helper_plugin_rating extends DokuWiki_Plugin {
         $sqlite->res_close($res);
 
         if(!$inner) echo '<div class="plugin_rating">';
+        echo '<span class="intro">'.$this->getLang('intro').'</span>';
 
         $class = ($self == -1) ? 'act' : '';
-        echo '<a href="'.wl($ID,array('rating'=>-1)).'" class="plugin_rating_down '.$class.'" data-rating="-1">-1</a>';
-        echo '<span>'.$current.'</span>';
+        echo '<a href="'.wl($ID,array('rating'=>-1)).'" class="plugin_rating_down '.$class.' plugin_feedback" data-rating="-1">-1</a>';
+        echo '<span class="current">'.$current.'</span>';
 
         $class = ($self == 1) ? 'act' : '';
         echo '<a href="'.wl($ID,array('rating'=>+1)).'" class="plugin_rating_up '.$class.'" data-rating="1">+1</a>';

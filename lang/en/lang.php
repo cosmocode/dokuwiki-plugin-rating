@@ -5,12 +5,5 @@
  * @author Andreas Gohr <gohr@cosmocode.de>
  */
 
-// menu entry for admin plugins
-// $lang['menu'] = 'Your menu entry';
+$lang['intro'] = 'Was this page helpful?';
 
-// custom language strings for the plugin
-// $lang['fixme'] = 'FIXME';
-
-
-
-//Setup VIM: ex: et ts=4 :
