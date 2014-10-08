@@ -84,6 +84,20 @@ class helper_plugin_rating extends DokuWiki_Plugin {
     }
 
     /**
+     * Removes all entries for a page
+     *
+     * @param $page
+     */
+    public function remove($page) {
+        $sqlite = $this->getDBHelper();
+        if(!$sqlite) return;
+
+        $sql = "DELETE FROM ratings WHERE page = ?";
+        $res  = $sqlite->query($sql, $page);
+        $sqlite->res_close($res);
+    }
+
+    /**
      * Get the best voted pages
      *
      * @param int $num

@@ -18,18 +18,36 @@ class action_plugin_rating extends DokuWiki_Action_Plugin {
      * @return void
      */
     public function register(Doku_Event_Handler $controller) {
-
-       $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call_unknown');
-
+        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call_unknown');
         $controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, 'handle_vote');
+        $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handle_delete');
+    }
 
+
+
+    /**
+     * [Custom event handler which performs action]
+     *
+     * @param Doku_Event $event event object by reference
+     * @param mixed $param [the parameters passed as fifth argument to register_hook() when this
+     *                           handler was registered]
+     * @return void
+     */
+    public function handle_delete(Doku_Event &$event, $param) {
+        if($event->data[3]) return; // it's an old revision
+        if($event->data[0][1]) return; // there's still content
+        // still here? page was deleted
+
+        /** @var helper_plugin_rating $hlp */
+        $hlp = plugin_load('helper', 'rating');
+        $hlp->remove($event->data[2]);
     }
 
     /**
      * [Custom event handler which performs action]
      *
-     * @param Doku_Event $event  event object by reference
-     * @param mixed      $param  [the parameters passed as fifth argument to register_hook() when this
+     * @param Doku_Event $event event object by reference
+     * @param mixed $param [the parameters passed as fifth argument to register_hook() when this
      *                           handler was registered]
      * @return void
      */
@@ -52,8 +70,8 @@ class action_plugin_rating extends DokuWiki_Action_Plugin {
     /**
      * [Custom event handler which performs action]
      *
-     * @param Doku_Event $event  event object by reference
-     * @param mixed      $param  [the parameters passed as fifth argument to register_hook() when this
+     * @param Doku_Event $event event object by reference
+     * @param mixed $param [the parameters passed as fifth argument to register_hook() when this
      *                           handler was registered]
      * @return void
      */
