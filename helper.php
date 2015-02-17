@@ -103,12 +103,25 @@ class helper_plugin_rating extends DokuWiki_Plugin {
      * @param int $num
      * @return array
      */
-    public function best($num = 10) {
+    public function best($lang, $startdate, $num = 10) {
         $sqlite = $this->getDBHelper();
         if(!$sqlite) return array();
 
-        $sql  = "SELECT sum(value) as val, page FROM ratings GROUP BY page ORDER BY sum(value) DESC LIMIT ?";
-        $res  = $sqlite->query($sql, $num);
+        $sqlbegin  = "SELECT sum(value) as val, page, lang FROM ratings ";
+        $sqlend = "GROUP BY page ORDER BY sum(value) DESC LIMIT ?";
+        if ($lang === null && $startdate === null){
+            $sql = $sqlbegin . $sqlend;
+            $res  = $sqlite->query($sql, $num);
+        } else if ($lang !== null && $startdate === null) {
+            $sql = $sqlbegin . "WHERE lang = ? " . $sqlend;
+            $res  = $sqlite->query($sql, $lang, $num);
+        } else if ($lang === null && $startdate !== null){
+            $sql = $sqlbegin . "WHERE date >= ? " . $sqlend;
+            $res  = $sqlite->query($sql, $startdate, $num);
+        } else {
+            $sql = $sqlbegin . "WHERE lang = ? AND date >= ? " . $sqlend;
+            $res  = $sqlite->query($sql, $lang, $startdate, $num);
+        }
         $list = $sqlite->res2arr($res);
         $sqlite->res_close($res);
         return $list;
@@ -126,9 +139,17 @@ class helper_plugin_rating extends DokuWiki_Plugin {
 
         $sqlite = $this->getDBHelper();
         if(!$sqlite) return;
+        try {
+            $translation = new helper_plugin_translation();
+            $lang = $translation->getLangPart($page);
+        } catch (Exception $e){
+            $lang = '';
+        }
 
-        $sql = "INSERT OR REPLACE INTO ratings (page, rater, value) VALUES (?, ?, ?)";
-        $sqlite->query($sql, $page, $this->userID(), $rate);
+        $date = date('Y-m-d');
+
+        $sql = "INSERT OR REPLACE INTO ratings (page, rater, lang, date, value) VALUES (?, ?, ?, ?, ?)";
+        $sqlite->query($sql, $page, $this->userID(), $lang, $date, $rate);
     }
 }
 
