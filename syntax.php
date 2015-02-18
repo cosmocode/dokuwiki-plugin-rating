@@ -63,10 +63,13 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
         if($data[0] != DOKU_LEXER_EXIT) return false;
         /** @var helper_plugin_rating $hlp */
         $hlp  = plugin_load('helper', 'rating');
-        $list = $hlp->best($data[1]['lang'],$data[1]['startdate']);
+        $list = $hlp->best($data[1]['lang'],$data[1]['startdate'], 20);
 
-        $renderer->listu_open();
+        $renderer->listo_open();
+        $num_items=0;
         foreach($list as $item) {
+            if (auth_quickaclcheck($item['page']) < AUTH_READ) continue;
+            $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'],':') === false) {
                 $item['page'] = ':' . $item['page'];
@@ -75,8 +78,9 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
             $renderer->cdata(' (' . $item['val'] . ')');
 
             $renderer->listitem_close();
+            if ($num_items >= 10) break;
         }
-        $renderer->listu_close();
+        $renderer->listo_close();
     }
 
 }
