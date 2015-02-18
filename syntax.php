@@ -68,6 +68,9 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
         $renderer->listu_open();
         foreach($list as $item) {
             $renderer->listitem_open(1);
+            if (strpos($item['page'],':') === false) {
+                $item['page'] = ':' . $item['page'];
+            }
             $renderer->internallink($item['page']);
             $renderer->cdata(' (' . $item['val'] . ')');
 
