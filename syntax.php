@@ -15,7 +15,7 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      * What kind of syntax are we?
      */
     function getType() {
-        return 'substition';
+        return 'protected';
     }
 
     /**
@@ -29,14 +29,28 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\\{\\{rating\\}\\}', $mode, 'plugin_rating');
+        $this->Lexer->addSpecialPattern('\\{\\{rating(?:.*?)\\}\\}', $mode, 'plugin_rating');
     }
 
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler) {
-        return array();
+    function handle($match, $state, $pos, Doku_Handler $handler) {
+        if ($state==DOKU_LEXER_SPECIAL) {
+            $options = array('lang' => null, 'startdate' => null );
+            $match = rtrim($match,'\}');
+            $match = substr($match,8);
+            if ($match != '') {
+                $match = ltrim($match,'\|');
+                $match = explode(",", $match);
+                foreach($match as $option) {
+                    $options[explode('=', $option)[0]] = explode('=', $option)[1];
+                }
+            }
+            return array($state, $options);
+        } else {
+            return array($state, '');
+        }
     }
 
     /**
@@ -44,17 +58,27 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $renderer, $data) {
         if($format == 'metadata') return false;
-        /** @var helper_plugin_rating $hlp */
-        $hlp  = plugin_load('helper', 'rating');
-        $list = $hlp->best();
+        if($data[0] != DOKU_LEXER_SPECIAL) return false;
 
-        $renderer->listu_open();
+        $hlp  = plugin_load('helper', 'rating');
+        $list = $hlp->best($data[1]['lang'],$data[1]['startdate'], 20);
+
+        $renderer->listo_open();
+        $num_items=0;
         foreach($list as $item) {
+            if (auth_aclcheck($item['page'],'',null) < AUTH_READ) continue;
+            $num_items = $num_items +1;
             $renderer->listitem_open(1);
+            if (strpos($item['page'],':') === false) {
+                $item['page'] = ':' . $item['page'];
+            }
             $renderer->internallink($item['page']);
+            $renderer->cdata(' (' . $item['val'] . ')');
+
             $renderer->listitem_close();
+            if ($num_items >= 10) break;
         }
-        $renderer->listu_close();
+        $renderer->listo_close();
     }
 
 }
