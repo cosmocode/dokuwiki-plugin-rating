@@ -29,21 +29,19 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     function connectTo($mode) {
-        $this->Lexer->addEntryPattern('\\{\\{rating\\|?(?=.*?\\}\\})', $mode, 'plugin_rating');
-    }
-
-    function postConnect() {
-        $this->Lexer->addExitPattern('.*?\\}\\}', 'plugin_rating');
+        $this->Lexer->addSpecialPattern('\\{\\{rating(?:.*?)\\}\\}', $mode, 'plugin_rating');
     }
 
     /**
      * Handle the match
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
-        if ($state==DOKU_LEXER_EXIT) {
+        if ($state==DOKU_LEXER_SPECIAL) {
             $options = array('lang' => null, 'startdate' => null );
             $match = rtrim($match,'\}');
+            $match = substr($match,8);
             if ($match != '') {
+                $match = ltrim($match,'\|');
                 $match = explode(",", $match);
                 foreach($match as $option) {
                     $options[explode('=', $option)[0]] = explode('=', $option)[1];
@@ -60,8 +58,8 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $renderer, $data) {
         if($format == 'metadata') return false;
-        if($data[0] != DOKU_LEXER_EXIT) return false;
-        /** @var helper_plugin_rating $hlp */
+        if($data[0] != DOKU_LEXER_SPECIAL) return false;
+
         $hlp  = plugin_load('helper', 'rating');
         $list = $hlp->best($data[1]['lang'],$data[1]['startdate'], 20);
 

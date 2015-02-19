@@ -1,7 +1,7 @@
 base   rating
 author Andreas Gohr
 email  gohr@cosmocode.de
-date   2015-02-18
+date   2015-02-19
 name   rating plugin
 desc   Allows rating a page
-https://www.dokuwiki.org/plugin:rating
+url    https://www.dokuwiki.org/plugin:rating
