@@ -44,7 +44,8 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
                 $match = ltrim($match,'\|');
                 $match = explode(",", $match);
                 foreach($match as $option) {
-                    $options[explode('=', $option)[0]] = explode('=', $option)[1];
+                    list($key, $val) = explode('=', $option);
+                    $options[$key] = $val;
                 }
             }
             return array($state, $options);
