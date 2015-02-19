@@ -37,7 +37,7 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
         if ($state==DOKU_LEXER_SPECIAL) {
-            $options = array('lang' => null, 'startdate' => null );
+            $options = array('lang' => null, 'startdate' => null, 'tag' => 'ul', 'score' => 'false' );
             $match = rtrim($match,'\}');
             $match = substr($match,8);
             if ($match != '') {
@@ -56,6 +56,11 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
 
     /**
      * Create output
+     *
+     * @param string $format Renderer mode (supported modes: xhtml)
+     * @param Doku_Renderer $renderer The renderer
+     * @param array $data The data from the handler() function
+     * @return bool If rendering was successful.
      */
     function render($format, Doku_Renderer $renderer, $data) {
         if($format == 'metadata') return false;
@@ -64,22 +69,34 @@ class syntax_plugin_rating extends DokuWiki_Syntax_Plugin {
         $hlp  = plugin_load('helper', 'rating');
         $list = $hlp->best($data[1]['lang'],$data[1]['startdate'], 20);
 
-        $renderer->listo_open();
+        if($data[1]['tag'] == 'ol') {
+            $renderer->listo_open();
+        } else {
+            $renderer->listu_open();
+        }
+
         $num_items=0;
         foreach($list as $item) {
             if (auth_aclcheck($item['page'],'',null) < AUTH_READ) continue;
+            if (!page_exists($item['page'])) continue;
             $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'],':') === false) {
                 $item['page'] = ':' . $item['page'];
             }
             $renderer->internallink($item['page']);
-            $renderer->cdata(' (' . $item['val'] . ')');
+            if ($data[1]['score'] === 'true') $renderer->cdata(' (' . $item['val'] . ')');
 
             $renderer->listitem_close();
             if ($num_items >= 10) break;
         }
-        $renderer->listo_close();
+
+        if($data[1]['tag'] == 'ol') {
+            $renderer->listo_close();
+        } else {
+            $renderer->listu_close();
+        }
+        return true;
     }
 
 }
