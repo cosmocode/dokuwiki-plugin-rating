@@ -140,6 +140,13 @@ class helper_plugin_rating extends DokuWiki_Plugin {
         $sqlite = $this->getDBHelper();
         if(!$sqlite) return;
 
+        // ignore any bot accesses
+        if(!class_exists('Jaybizzle\CrawlerDetect\CrawlerDetect')){
+            require (__DIR__ . '/CrawlerDetect.php');
+        }
+        $CrawlerDetect = new Jaybizzle\CrawlerDetect\CrawlerDetect();
+        if($CrawlerDetect->isCrawler()) return;
+
         $translation = plugin_load('helper', 'translation');
         if (!$translation) {
             $lang = '';
