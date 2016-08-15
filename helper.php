@@ -53,8 +53,10 @@ class helper_plugin_rating extends DokuWiki_Plugin {
      * Display the rating tool in a template
      *
      * @param bool $inner used for AJAX updates
+     * @param bool $print Should the HTML be printed or returned?
+     * @return null|string
      */
-    public function tpl($inner = false) {
+    public function tpl($inner = false, $print = true) {
         global $ID;
 
         $sqlite = $this->getDBHelper();
@@ -70,17 +72,22 @@ class helper_plugin_rating extends DokuWiki_Plugin {
         $self = (int) $sqlite->res2single($res);
         $sqlite->res_close($res);
 
-        if(!$inner) echo '<div class="plugin_rating">';
-        echo '<span class="intro">' . $this->getLang('intro') . '</span>';
+        $ret = '';
+        
+        if(!$inner) $ret .= '<div class="plugin_rating">';
+        $ret .= '<span class="intro">' . $this->getLang('intro') . '</span>';
 
         $class = ($self == -1) ? 'act' : '';
-        echo '<a href="' . wl($ID, array('rating' => -1)) . '" class="plugin_rating_down ' . $class . ' plugin_feedback" data-rating="-1">-1</a>';
-        echo '<span class="current">' . $current . '</span>';
+        $ret .= '<a href="' . wl($ID, array('rating' => -1)) . '" class="plugin_rating_down ' . $class . ' plugin_feedback" data-rating="-1">-1</a>';
+        $ret .= '<span class="current">' . $current . '</span>';
 
         $class = ($self == 1) ? 'act' : '';
-        echo '<a href="' . wl($ID, array('rating' => +1)) . '" class="plugin_rating_up ' . $class . '" data-rating="1">+1</a>';
+        $ret .= '<a href="' . wl($ID, array('rating' => +1)) . '" class="plugin_rating_up ' . $class . '" data-rating="1">+1</a>';
 
-        if(!$inner) echo '</div>';
+        if(!$inner) $ret .= '</div>';
+        
+        if($print) echo $ret;
+        return $ret;
     }
 
     /**
